@@ -3,7 +3,7 @@
     "rewrites": [
         {
             "source": "/api/scan",
-            "destination": "/api/scan.js"
+            "destination": "/api/scan"
         }
     ]
 }
