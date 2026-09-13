@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Binance Perp Screener</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0b0e14; color: #eaebd9; }
+    .btn-toggle { background-color: #1a1e29; color: #9ca3af; border: 1px solid #2d3748; }
+    .btn-toggle.active-all { background-color: #1e293b; color: #ffffff; border-color: #475569; }
+    .btn-toggle.active-green { background-color: #064e3b; color: #34d399; border-color: #059669; }
+    .btn-toggle.active-red { background-color: #7f1d1d; color: #f87171; border-color: #dc2626; }
+    .btn-toggle.active-yellow { background-color: #78350f; color: #fbbf24; border-color: #d97706; }
+  </style>
+</head>
+<body class="p-6 font-sans text-xs">
+  <div class="max-w-7xl mx-auto space-y-4">
+   
+    <!-- Top Header Navigation -->
+    <div class="flex justify-between items-center bg-[#131722] p-3 rounded-xl border border-gray-800">
+      <div class="flex items-center space-x-3">
+        <h1 class="text-base font-bold text-yellow-500">Binance Perp Screener</h1>
+        <span class="bg-yellow-500/10 text-yellow-500 text-[10px] font-semibold px-2 py-0.5 rounded border border-yellow-500/20">USDT Perpetual</span>
+        <div id="active-tags-bar" class="flex space-x-2 text-[10px]"></div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <span class="text-green-400 text-[11px] flex items-center gap-1">● Connected (Local CORS Proxy)</span>
+        <button onclick="loadData()" class="bg-yellow-500 text-black px-4 py-1.5 rounded-lg font-bold hover:bg-yellow-400 transition">
+          Scan Now
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="bg-[#131722] p-4 rounded-xl border border-gray-800 space-y-4">
+     
+      <!-- Row 1: EMA 8/20 Trend Filters -->
+      <div class="bg-[#181c27] p-3 rounded-lg border border-gray-800">
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-gray-200">EMA 8 / 20 Trend Filters</span>
+            <span id="ema-active-count" class="bg-amber-500/20 text-amber-400 text-[10px] px-2 py-0.5 rounded border border-amber-500/30">0 Active</span>
+          </div>
+          <div class="flex space-x-1 text-[10px]">
+            <span class="text-gray-400 self-center mr-1">Presets:</span>
+            <button onclick="setEmaPreset('FULL_BULL')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded">Full Bull (15m+1h+4h)</button>
+            <button onclick="setEmaPreset('FULL_BEAR')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded">Full Bear (15m+1h+4h)</button>
+            <button onclick="setEmaPreset('TREND_BULL')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded">Trend Bull (1h+4h)</button>
+            <button onclick="setEmaPreset('OFF')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded">All (Off)</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <!-- 15m EMA -->
+          <div>
+            <label class="block text-gray-400 mb-1">15m EMA 8 vs 20</label>
+            <div class="grid grid-cols-3 gap-1">
+              <button id="ema15-all" onclick="setEma('15m', 'ALL')" class="btn-toggle active-all py-1 rounded text-center">ALL</button>
+              <button id="ema15-bull" onclick="setEma('15m', 'BULL')" class="btn-toggle py-1 rounded text-center">▲ Bull</button>
+              <button id="ema15-bear" onclick="setEma('15m', 'BEAR')" class="btn-toggle py-1 rounded text-center">▼ Bear</button>
+            </div>
+          </div>
+          <!-- 1h EMA -->
+          <div>
+            <label class="block text-gray-400 mb-1">1h EMA 8 vs 20</label>
+            <div class="grid grid-cols-3 gap-1">
+              <button id="ema1h-all" onclick="setEma('1h', 'ALL')" class="btn-toggle active-all py-1 rounded text-center">ALL</button>
+              <button id="ema1h-bull" onclick="setEma('1h', 'BULL')" class="btn-toggle py-1 rounded text-center">▲ Bull</button>
+              <button id="ema1h-bear" onclick="setEma('1h', 'BEAR')" class="btn-toggle py-1 rounded text-center">▼ Bear</button>
+            </div>
+          </div>
+          <!-- 4h EMA -->
+          <div>
+            <label class="block text-gray-400 mb-1">4h EMA 8 vs 20</label>
+            <div class="grid grid-cols-3 gap-1">
+              <button id="ema4h-all" onclick="setEma('4h', 'ALL')" class="btn-toggle active-all py-1 rounded text-center">ALL</button>
+              <button id="ema4h-bull" onclick="setEma('4h', 'BULL')" class="btn-toggle py-1 rounded text-center">▲ Bull</button>
+              <button id="ema4h-bear" onclick="setEma('4h', 'BEAR')" class="btn-toggle py-1 rounded text-center">▼ Bear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Stoch RSI Momentum Filters -->
+      <div class="bg-[#181c27] p-3 rounded-lg border border-gray-800">
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-gray-200">Stoch RSI Momentum Filters</span>
+            <span id="rsi-active-count" class="bg-amber-500/20 text-amber-400 text-[10px] px-2 py-0.5 rounded border border-amber-500/30">0 Active</span>
+          </div>
+          <div class="flex space-x-1 text-[10px]">
+            <span class="text-gray-400 self-center mr-1">Presets:</span>
+            <button onclick="setRsiPreset('ALL_BULL')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded">All Bull (15m+1h+4h)</button>
+            <button onclick="setRsiPreset('TREND_BULL')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded">Trend Bull (1h+4h)</button>
+            <button onclick="setRsiPreset('OVERSOLD')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded">Oversold Dip (15m+1h)</button>
+            <button onclick="setRsiPreset('OFF')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded">All (Off)</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <!-- 15m Stoch RSI -->
+          <div>
+            <label class="block text-gray-400 mb-1">15m Stoch RSI</label>
+            <div class="grid grid-cols-5 gap-1 text-[10px]">
+              <button id="rsi15-all" onclick="setRsi('15m', 'ALL')" class="btn-toggle active-all py-1 rounded text-center">ALL</button>
+              <button id="rsi15-above" onclick="setRsi('15m', 'ABOVE')" class="btn-toggle py-1 rounded text-center">▲ Above (K>D)</button>
+              <button id="rsi15-below" onclick="setRsi('15m', 'BELOW')" class="btn-toggle py-1 rounded text-center">▼ Below</button>
+              <button id="rsi15-os" onclick="setRsi('15m', 'OS')" class="btn-toggle py-1 rounded text-center">OS</button>
+              <button id="rsi15-ob" onclick="setRsi('15m', 'OB')" class="btn-toggle py-1 rounded text-center">OB</button>
+            </div>
+          </div>
+          <!-- 1h Stoch RSI -->
+          <div>
+            <label class="block text-gray-400 mb-1">1h Stoch RSI</label>
+            <div class="grid grid-cols-5 gap-1 text-[10px]">
+              <button id="rsi1h-all" onclick="setRsi('1h', 'ALL')" class="btn-toggle active-all py-1 rounded text-center">ALL</button>
+              <button id="rsi1h-above" onclick="setRsi('1h', 'ABOVE')" class="btn-toggle py-1 rounded text-center">▲ Above (K>D)</button>
+              <button id="rsi1h-below" onclick="setRsi('1h', 'BELOW')" class="btn-toggle py-1 rounded text-center">▼ Below</button>
+              <button id="rsi1h-os" onclick="setRsi('1h', 'OS')" class="btn-toggle py-1 rounded text-center">OS</button>
+              <button id="rsi1h-ob" onclick="setRsi('1h', 'OB')" class="btn-toggle py-1 rounded text-center">OB</button>
+            </div>
+          </div>
+          <!-- 4h Stoch RSI -->
+          <div>
+            <label class="block text-gray-400 mb-1">4h Stoch RSI</label>
+            <div class="grid grid-cols-5 gap-1 text-[10px]">
+              <button id="rsi4h-all" onclick="setRsi('4h', 'ALL')" class="btn-toggle active-all py-1 rounded text-center">ALL</button>
+              <button id="rsi4h-above" onclick="setRsi('4h', 'ABOVE')" class="btn-toggle py-1 rounded text-center">▲ Above (K>D)</button>
+              <button id="rsi4h-below" onclick="setRsi('4h', 'BELOW')" class="btn-toggle py-1 rounded text-center">▼ Below</button>
+              <button id="rsi4h-os" onclick="setRsi('4h', 'OS')" class="btn-toggle py-1 rounded text-center">OS</button>
+              <button id="rsi4h-ob" onclick="setRsi('4h', 'OB')" class="btn-toggle py-1 rounded text-center">OB</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Volume, ATRP & Squeeze Filter -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <!-- Min Volume -->
+        <div class="bg-[#181c27] p-3 rounded-lg border border-gray-800">
+          <label class="block text-gray-400 mb-1 font-bold">Min 24h Vol (USDT)</label>
+          <div class="grid grid-cols-4 gap-1">
+            <button id="vol-10m" onclick="setVol(10000000)" class="btn-toggle py-1 rounded text-center">10M</button>
+            <button id="vol-50m" onclick="setVol(50000000)" class="btn-toggle py-1 rounded text-center">50M</button>
+            <button id="vol-100m" onclick="setVol(100000000)" class="btn-toggle active-yellow py-1 rounded text-center">100M</button>
+            <button id="vol-250m" onclick="setVol(250000000)" class="btn-toggle py-1 rounded text-center">250M</button>
+          </div>
+        </div>
+
+        <!-- Min ATRP Filter -->
+        <div class="bg-[#181c27] p-3 rounded-lg border border-gray-800">
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-gray-400 font-bold">Min ATRP</label>
+            <select id="atrp-tf" onchange="loadData()" class="bg-[#131722] text-yellow-500 border border-gray-700 rounded px-1 text-[10px]">
+              <option value="15m" selected>15m</option>
+              <option value="1h">1h</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-4 gap-1">
+            <button id="atrp-0" onclick="setAtrp(0)" class="btn-toggle py-1 rounded text-center">ALL</button>
+            <button id="atrp-1" onclick="setAtrp(1.0)" class="btn-toggle py-1 rounded text-center">1.0%</button>
+            <button id="atrp-25" onclick="setAtrp(2.5)" class="btn-toggle active-yellow py-1 rounded text-center">2.5%</button>
+            <button id="atrp-5" onclick="setAtrp(5.0)" class="btn-toggle py-1 rounded text-center">5.0%</button>
+          </div>
+        </div>
+
+        <!-- Squeeze Ratio Filter -->
+        <div class="bg-[#181c27] p-3 rounded-lg border border-gray-800">
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-gray-400 font-bold">Squeeze Ratio</label>
+            <select id="squeeze-tf" onchange="loadData()" class="bg-[#131722] text-yellow-500 border border-gray-700 rounded px-1 text-[10px]">
+              <option value="1h" selected>1h</option>
+              <option value="15m">15m</option>
+            </select>
+          </div>
+          <select id="squeeze-filter" onchange="loadData()" class="w-full bg-[#131722] border border-gray-700 rounded p-1 text-white outline-none">
+            <option value="ALL" selected>All Squeeze Statuses</option>
+            <option value="SQUEEZE">In Squeeze Mode (Ratio < 1.0)</option>
+            <option value="NO_SQUEEZE">No Squeeze (Ratio >= 1.0)</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Stats Summary Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 text-xs">
+      <div class="bg-[#131722] p-3 rounded-xl border border-gray-800">
+        <span class="text-gray-400 block">Matching Pairs</span>
+        <span id="stat-pairs" class="text-xl font-bold text-white">0</span>
+      </div>
+      <div class="bg-[#131722] p-3 rounded-xl border border-gray-800">
+        <span class="text-gray-400 block">Squeeze (1h)</span>
+        <span id="stat-squeeze" class="text-xl font-bold text-orange-400">0</span>
+      </div>
+      <div class="bg-[#131722] p-3 rounded-xl border border-gray-800">
+        <span class="text-gray-400 block">EMA 8 > 20 (15m)</span>
+        <span id="stat-ema15-bull" class="text-xl font-bold text-green-400">0</span>
+      </div>
+      <div class="bg-[#131722] p-3 rounded-xl border border-gray-800">
+        <span class="text-gray-400 block">EMA 8 < 20 (15m)</span>
+        <span id="stat-ema15-bear" class="text-xl font-bold text-red-400">0</span>
+      </div>
+      <div class="bg-[#131722] p-3 rounded-xl border border-gray-800">
+        <span class="text-gray-400 block">Top ATRP (15m)</span>
+        <span id="stat-top-atrp15" class="text-xl font-bold text-yellow-500">0%</span>
+      </div>
+      <div class="bg-[#131722] p-3 rounded-xl border border-gray-800">
+        <span class="text-gray-400 block">Top ATRP (1h)</span>
+        <span id="stat-top-atrp1h" class="text-xl font-bold text-amber-500">0%</span>
+      </div>
+    </div>
+
+    <!-- Table Results -->
+    <div class="bg-[#131722] rounded-xl border border-gray-800 overflow-hidden">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-[#181c27] text-gray-400 border-b border-gray-800 uppercase text-[10px]">
+          <tr>
+            <th class="p-3">#</th>
+            <th class="p-3">Symbol</th>
+            <th class="p-3">Price</th>
+            <th class="p-3">24h Chg</th>
+            <th class="p-3">24h Vol</th>
+            <th class="p-3">ATRP (15m)</th>
+            <th class="p-3">ATRP (1h)</th>
+            <th class="p-3">EMA 8 / 20 (15m • 1h • 4h)</th>
+            <th class="p-3">SRSI (15m • 1h • 4h)</th>
+            <th class="p-3">Squeeze Ratio (1h)</th>
+          </tr>
+        </thead>
+        <tbody id="result-table">
+          <tr>
+            <td colspan="10" class="p-4 text-center text-gray-500">Klik "Scan Now" untuk memuat data...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+<script>
+  // State Filter Settings
+  let state = {
+    ema: { '15m': 'ALL', '1h': 'BULL', '4h': 'BULL' },
+    rsi: { '15m': 'ALL', '1h': 'ABOVE', '4h': 'ABOVE' },
+    vol: 100000000,
+    atrpVal: 2.5
+  };
+
+  function setEma(tf, val) {
+    state.ema[tf] = val;
+    updateUiButtons();
+    loadData();
+  }
+
+  function setRsi(tf, val) {
+    state.rsi[tf] = val;
+    updateUiButtons();
+    loadData();
+  }
+
+  function setVol(val) {
+    state.vol = val;
+    updateUiButtons();
+    loadData();
+  }
+
+  function setAtrp(val) {
+    state.atrpVal = val;
+    updateUiButtons();
+    loadData();
+  }
+
+  function setEmaPreset(type) {
+    if (type === 'FULL_BULL') state.ema = { '15m': 'BULL', '1h': 'BULL', '4h': 'BULL' };
+    if (type === 'FULL_BEAR') state.ema = { '15m': 'BEAR', '1h': 'BEAR', '4h': 'BEAR' };
+    if (type === 'TREND_BULL') state.ema = { '15m': 'ALL', '1h': 'BULL', '4h': 'BULL' };
+    if (type === 'OFF') state.ema = { '15m': 'ALL', '1h': 'ALL', '4h': 'ALL' };
+    updateUiButtons();
+    loadData();
+  }
+
+  function setRsiPreset(type) {
+    if (type === 'ALL_BULL') state.rsi = { '15m': 'ABOVE', '1h': 'ABOVE', '4h': 'ABOVE' };
+    if (type === 'TREND_BULL') state.rsi = { '15m': 'ALL', '1h': 'ABOVE', '4h': 'ABOVE' };
+    if (type === 'OVERSOLD') state.rsi = { '15m': 'OS', '1h': 'OS', '4h': 'ALL' };
+    if (type === 'OFF') state.rsi = { '15m': 'ALL', '1h': 'ALL', '4h': 'ALL' };
+    updateUiButtons();
+    loadData();
+  }
+
+  function updateUiButtons() {
+    ['15m', '1h', '4h'].forEach(tf => {
+      const prefix = tf === '15m' ? '15' : tf;
+      ['all', 'bull', 'bear'].forEach(mode => {
+        const btn = document.getElementById(`ema${prefix}-${mode}`);
+        if (btn) {
+          btn.className = "btn-toggle py-1 rounded text-center";
+          if (state.ema[tf] === mode.toUpperCase()) {
+            btn.className += mode === 'bull' ? " active-green" : mode === 'bear' ? " active-red" : " active-all";
+          }
+        }
+      });
+
+      ['all', 'above', 'below', 'os', 'ob'].forEach(mode => {
+        const btn = document.getElementById(`rsi${prefix}-${mode}`);
+        if (btn) {
+          btn.className = "btn-toggle py-1 rounded text-center";
+          if (state.rsi[tf] === mode.toUpperCase()) {
+            btn.className += (mode === 'above' || mode === 'os') ? " active-green" : mode === 'below' || mode === 'ob' ? " active-red" : " active-all";
+          }
+        }
+      });
+    });
+
+    [10000000, 50000000, 100000000, 250000000].forEach(v => {
+      const label = v === 10000000 ? '10m' : v === 50000000 ? '50m' : v === 100000000 ? '100m' : '250m';
+      const btn = document.getElementById(`vol-${label}`);
+      if (btn) {
+        btn.className = state.vol === v ? "btn-toggle active-yellow py-1 rounded text-center" : "btn-toggle py-1 rounded text-center";
+      }
+    });
+
+    [0, 1.0, 2.5, 5.0].forEach(a => {
+      const label = a === 0 ? '0' : a === 1.0 ? '1' : a === 2.5 ? '25' : '5';
+      const btn = document.getElementById(`atrp-${label}`);
+      if (btn) {
+        btn.className = state.atrpVal === a ? "btn-toggle active-yellow py-1 rounded text-center" : "btn-toggle py-1 rounded text-center";
+      }
+    });
+
+    let emaActive = Object.values(state.ema).filter(v => v !== 'ALL').length;
+    let rsiActive = Object.values(state.rsi).filter(v => v !== 'ALL').length;
+    document.getElementById('ema-active-count').innerText = `${emaActive} Active`;
+    document.getElementById('rsi-active-count').innerText = `${rsiActive} Active`;
+  }
+
+  function checkRsiCondition(k, d, condition) {
+    if (condition === "ALL") return true;
+    if (k === undefined || d === undefined) return false;
+    if (condition === "ABOVE") return k > d;
+    if (condition === "BELOW") return k < d;
+    if (condition === "OS") return k <= 20;
+    if (condition === "OB") return k >= 80;
+    return true;
+  }
+
+  // Format Angka Presisi Kripto (Mendukung Memecoin)
+  function formatPrice(val) {
+    if (!val || isNaN(val) || val === 0) return '$0.00';
+    if (val >= 1000) return '$' + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (val >= 1) return '$' + val.toFixed(2);
+    if (val >= 0.0001) return '$' + val.toFixed(4);
+    return '$' + val.toFixed(8); // Mendukung angka seperti 0.00000123
+  }
+
+async function loadData() {
+  const tbody = document.getElementById('result-table');
+  tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-yellow-500">Memuat data Binance USDT Perpetual...</td></tr>';
+
+  const squeezeMode = document.getElementById('squeeze-filter').value;
+  const atrpTf = document.getElementById('atrp-tf').value;
+
+  // Filter Wajib: Membatasi HANYA dari Binance Futures & Berpasangan USDT
+  const filters = [
+    { left: "exchange", operation: "equal", right: "BINANCE" },
+    { left: "name,description", operation: "match", right: "USDT" }
+  ];
+
+  if (state.vol > 0) filters.push({ left: "volume", operation: "greater", right: state.vol });
+
+  if (state.ema['15m'] === "BULL") filters.push({ left: "EMA8|15", operation: "greater", right: "EMA20|15" });
+  if (state.ema['15m'] === "BEAR") filters.push({ left: "EMA8|15", operation: "less", right: "EMA20|15" });
+
+  if (state.ema['1h'] === "BULL") filters.push({ left: "EMA8|60", operation: "greater", right: "EMA20|60" });
+  if (state.ema['1h'] === "BEAR") filters.push({ left: "EMA8|60", operation: "less", right: "EMA20|60" });
+
+  if (state.ema['4h'] === "BULL") filters.push({ left: "EMA8|240", operation: "greater", right: "EMA20|240" });
+  if (state.ema['4h'] === "BEAR") filters.push({ left: "EMA8|240", operation: "less", right: "EMA20|240" });
+
+  const payload = {
+    filter: filters,
+    columns: [
+      "name",                  // d[0]
+      "close",                 // d[1]
+      "change",                // d[2]
+      "volume",                // d[3]
+      "Average.True.Range|15", // d[4]
+      "Average.True.Range|60", // d[5]
+      "EMA8|15", "EMA20|15",   // d[6], d[7]
+      "EMA8|60", "EMA20|60",   // d[8], d[9]
+      "EMA8|240", "EMA20|240", // d[10], d[11]
+      "Stoch.RSI.K|15", "Stoch.RSI.D|15",   // d[12], d[13]
+      "Stoch.RSI.K|60", "Stoch.RSI.D|60",   // d[14], d[15]
+      "Stoch.RSI.K|240", "Stoch.RSI.D|240", // d[16], d[17]
+      "BB.upper|60", "BB.lower|60",         // d[18], d[19]
+      "KLTN.upper|60", "KLTN.lower|60"      // d[20], d[21]
+    ],
+    sort: { sortBy: "volume", sortOrder: "desc" },
+    range: [0, 100]
+  };
+
+  try {
+    const res = await fetch('/api/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    tbody.innerHTML = '';
+    if (!data.data || data.data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-gray-400">Tidak ada koin yang sesuai dengan filter.</td></tr>';
+      updateStats(0, 0, 0, 0, 0, 0);
+      return;
+    }
+
+    let matchedRows = 0, squeezeCount = 0, ema15Bull = 0, ema15Bear = 0, topAtrp15 = 0, topAtrp1h = 0;
+    const processedSymbols = new Set();
+
+    data.data.forEach(item => {
+      const d = item.d;
+      let rawSymbol = d[0] || item.s || "";
+
+      // Bersihkan Ticker (Menghapus BINANCE: dan akhiran .P atau PERP)
+      let cleanSymbol = rawSymbol
+        .replace(/^BINANCE:/, '')
+        .replace(/\.P$/, '')
+        .replace(/PERP$/, '');
+
+      // Validasi ketat: Harus berakhiran USDT & cegah duplikasi
+      if (!cleanSymbol.endsWith("USDT")) return;
+      if (processedSymbols.has(cleanSymbol)) return;
+      processedSymbols.add(cleanSymbol);
+
+      const price = parseFloat(d[1]) || 0;
+      const change = parseFloat(d[2]) || 0;
+      const volume = parseFloat(d[3]) || 0;
+
+      const atr15m = parseFloat(d[4]) || 0;
+      const atr1h = parseFloat(d[5]) || 0;
+
+      const e8_15 = parseFloat(d[6]) || 0;
+      const e20_15 = parseFloat(d[7]) || 0;
+      const e8_1h = parseFloat(d[8]) || 0;
+      const e20_1h = parseFloat(d[9]) || 0;
+      const e8_4h = parseFloat(d[10]) || 0;
+      const e20_4h = parseFloat(d[11]) || 0;
+
+      const k15 = parseFloat(d[12]) || 0;
+      const d15 = parseFloat(d[13]) || 0;
+      const k1h = parseFloat(d[14]) || 0;
+      const d1h = parseFloat(d[15]) || 0;
+      const k4h = parseFloat(d[16]) || 0;
+      const d4h = parseFloat(d[17]) || 0;
+
+      const bbUpper = parseFloat(d[18]) || 0;
+      const bbLower = parseFloat(d[19]) || 0;
+      const kltnUpper = parseFloat(d[20]) || 0;
+      const kltnLower = parseFloat(d[21]) || 0;
+
+      const atrp15m = (atr15m > 0 && price > 0) ? (atr15m / price) * 100 : 0;
+      const atrp1h = (atr1h > 0 && price > 0) ? (atr1h / price) * 100 : 0;
+
+      const bbWidth = (bbUpper > 0 && bbLower > 0) ? (bbUpper - bbLower) : 0;
+      const kltnWidth = (kltnUpper > 0 && kltnLower > 0) ? (kltnUpper - kltnLower) : 0;
+      const squeezeRatio = kltnWidth > 0 ? (bbWidth / kltnWidth) : 2.0;
+      const isSqueeze = squeezeRatio < 1.0;
+
+      // Client ATRP Check
+      const currentAtrp = atrpTf === '15m' ? atrp15m : atrp1h;
+      if (state.atrpVal > 0 && currentAtrp < state.atrpVal) return;
+
+      // Client Squeeze Check
+      if (squeezeMode === "SQUEEZE" && !isSqueeze) return;
+      if (squeezeMode === "NO_SQUEEZE" && isSqueeze) return;
+
+      // Client Stoch RSI Check
+      if (!checkRsiCondition(k15, d15, state.rsi['15m'])) return;
+      if (!checkRsiCondition(k1h, d1h, state.rsi['1h'])) return;
+      if (!checkRsiCondition(k4h, d4h, state.rsi['4h'])) return;
+
+      matchedRows++;
+      if (atrp15m > topAtrp15) topAtrp15 = atrp15m;
+      if (atrp1h > topAtrp1h) topAtrp1h = atrp1h;
+      if (isSqueeze) squeezeCount++;
+
+      if (e8_15 > e20_15) ema15Bull++; else ema15Bear++;
+
+      const tr = document.createElement('tr');
+      tr.className = "border-b border-gray-800 hover:bg-[#1e222d] transition";
+      tr.innerHTML = `
+        <td class="p-3 text-gray-500">${matchedRows}</td>
+        <td class="p-3 font-bold text-yellow-500">
+          <div>${cleanSymbol}</div>
+          <div class="text-[9px] text-gray-500">BINANCE:${cleanSymbol}.P</div>
+        </td>
+        <td class="p-3 font-mono font-bold text-white">${formatPrice(price)}</td>
+        <td class="p-3 font-semibold ${change >= 0 ? 'text-green-400' : 'text-red-400'}">
+          ${change >= 0 ? '+' : ''}${change.toFixed(2)}%
+        </td>
+        <td class="p-3 text-gray-300">$${(volume / 1000000).toFixed(1)}M</td>
+        <td class="p-3 font-bold text-yellow-500">${atrp15m.toFixed(2)}%</td>
+        <td class="p-3 font-bold text-amber-500">${atrp1h.toFixed(2)}%</td>
+        <td class="p-3">
+          <div class="flex space-x-1">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${e8_15 > e20_15 ? 'bg-green-900/80 text-green-300' : 'bg-red-900/80 text-red-300'}">15m</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${e8_1h > e20_1h ? 'bg-green-900/80 text-green-300' : 'bg-red-900/80 text-red-300'}">1h</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${e8_4h > e20_4h ? 'bg-green-900/80 text-green-300' : 'bg-red-900/80 text-red-300'}">4h</span>
+          </div>
+        </td>
+        <td class="p-3">
+          <div class="flex space-x-1 font-mono text-[10px]">
+            <span class="px-1.5 py-0.5 rounded ${k15 > d15 ? 'bg-emerald-900/80 text-emerald-300' : 'bg-red-900/80 text-red-300'}">▲ ${k15.toFixed(1)}</span>
+            <span class="px-1.5 py-0.5 rounded ${k1h > d1h ? 'bg-emerald-900/80 text-emerald-300' : 'bg-red-900/80 text-red-300'}">▲ ${k1h.toFixed(1)}</span>
+            <span class="px-1.5 py-0.5 rounded ${k4h > d4h ? 'bg-emerald-900/80 text-emerald-300' : 'bg-red-900/80 text-red-300'}">▲ ${k4h.toFixed(1)}</span>
+          </div>
+        </td>
+        <td class="p-3">
+          <span class="px-2 py-0.5 rounded font-bold ${isSqueeze ? 'bg-orange-900/80 text-orange-300 border border-orange-600' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}">
+            ${isSqueeze ? 'SQUEEZE' : 'No Squeeze'} (${squeezeRatio.toFixed(2)})
+          </span>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    if (matchedRows === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-gray-400">Tidak ada koin yang memenuhi kriteria kombinasi ini.</td></tr>';
+    }
+
+    updateStats(matchedRows, squeezeCount, ema15Bull, ema15Bear, topAtrp15, topAtrp1h);
+
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-red-500">Gagal mengambil data dari server.</td></tr>';
+  }
+}
+
+
+  function updateStats(pairs, squeeze, bull, bear, topAtrp15, topAtrp1h) {
+    document.getElementById('stat-pairs').innerText = pairs;
+    document.getElementById('stat-squeeze').innerText = squeeze;
+    document.getElementById('stat-ema15-bull').innerText = bull;
+    document.getElementById('stat-ema15-bear').innerText = bear;
+    document.getElementById('stat-top-atrp15').innerText = topAtrp15.toFixed(2) + '%';
+    document.getElementById('stat-top-atrp1h').innerText = topAtrp1h.toFixed(2) + '%';
+  }
+
+  // Initialize UI
+  updateUiButtons();
+</script>  
+</body>
+</html>
