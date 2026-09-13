@@ -468,8 +468,10 @@ async function loadData() {
       const kltnWidth = (kltnUpper - kltnLower) ;
       const kcWidth = 3 * atr1h ;
       let squeezeRatio = 0;
-      if (kltnWidth >0) {
-        squeezeRatio = parseFloat((bbWidth/kltnWidth).toFixed(3));
+      if (kcWidth > 0 && bbWidth > 0) {
+        squeezeRatio = parseFloat((bbWidth/kcWidth).toFixed(3));
+      } else {
+        squeezeRatio = 0;
       };
       const isSqueeze = squeezeRatio < 1.0;
 
