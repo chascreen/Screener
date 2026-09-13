@@ -407,6 +407,7 @@ async function loadData() {
       body: JSON.stringify(payload)
     });
     const data = await res.json();
+    console.log("Data asli tradingview:", data.data[0]);
 
     tbody.innerHTML = '';
     if (!data.data || data.data.length === 0) {
