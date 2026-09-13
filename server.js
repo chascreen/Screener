@@ -16,6 +16,9 @@ app.post('/api/scan', async (req, res) => {
             },
             body: JSON.stringify(req.body)
         });
+        if (!response.ok) {
+            throw new Error('tradingView API Error: ${response.statusText}');
+        }
         const data = await response.json();
         res.json(data);        
     } catch(error) {
