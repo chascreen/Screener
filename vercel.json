@@ -1,14 +1,9 @@
 {
     "version": 2,
-    "functions": {
-        "server.js": {
-            "maxDuration": 15
-        }
-    },
     "rewrites": [
         {
             "source": "/api/scan",
-            "destination": "/server.js"
+            "destination": "/api/scan.js"
         }
     ]
 }
