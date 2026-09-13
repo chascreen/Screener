@@ -1,5 +1,10 @@
 {
     "version": 2,
+    "functions": {
+        "api/server.js": {
+            "maxDuration": 15
+        }
+    },       
     "rewrites": [
         {
             "source": "/api/scan",
