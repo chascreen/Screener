@@ -1,17 +1,7 @@
 {
   "name": "screener",
   "version": "1.0.0",
-  "description": "",
-  "main": "test-tv.js",
-  "scripts": {
-    "starts": "node server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "cors": "^2.8.6",
-    "express": "^5.2.1"
+  "private": true,
+  "dependencies": {}
   }
 }
