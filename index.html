@@ -463,9 +463,12 @@ async function loadData() {
       const atrp15m = (atr15m > 0 && price > 0) ? (atr15m / price) * 100 : 0;
       const atrp1h = (atr1h > 0 && price > 0) ? (atr1h / price) * 100 : 0;
 
-      const bbWidth = (bbUpper > 0 && bbLower > 0) ? (bbUpper - bbLower) : 0;
-      const kltnWidth = (kltnUpper > 0 && kltnLower > 0) ? (kltnUpper - kltnLower) : 0;
-      const squeezeRatio = kltnWidth > 0 ? (bbWidth / kltnWidth) : 2.0;
+      const bbWidth = (bbUpper - bbLower) ;
+      const kltnWidth = (kltnUpper - kltnLower) ;
+      const squeezeRatio = 0;
+      if (kltnWidth >0) {
+        squeezeRatio = parseFloat((bbWidth/kltnWidth).toFixed(3));
+      };
       const isSqueeze = squeezeRatio < 1.0;
 
       // Client ATRP Check
