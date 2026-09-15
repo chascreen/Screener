@@ -365,7 +365,7 @@
 
 async function loadData() {
   const tbody = document.getElementById('result-table');
-  tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-yellow-500">Memuat data Binance USDT Perpetual...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="13" class="p-4 text-center text-yellow-500">Memuat data Binance USDT Perpetual...</td></tr>';
 
   const squeezeMode = document.getElementById('squeeze-filter').value;
   const atrpTf = document.getElementById('atrp-tf').value;
@@ -420,7 +420,7 @@ async function loadData() {
 
     tbody.innerHTML = '';
     if (!data.data || data.data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-gray-400">Tidak ada koin yang sesuai dengan filter.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="13" class="p-4 text-center text-gray-400">Tidak ada koin yang sesuai dengan filter.</td></tr>';
       updateStats(0, 0, 0, 0, 0, 0);
       return;
     }
@@ -543,7 +543,10 @@ async function loadData() {
             ${isSqueeze ? 'SQUEEZE' : 'No Squeeze'} (${squeezeRatio.toFixed(2)})
           </span>
         </td>
-      `;
+        <!-- === TAMBAHKAN 3 KOLOM BARU DI SINI === -->
+        <td class="text-red-400 font-semibold">$${formatPrice(slPrice)}</td>
+        <td class="text-blue-400">$${formatPrice(e20_1h)}</td>
+        <td class="text-green-400 font-semibold">$${formatPrice(tpPrice)}</td>;
       tbody.appendChild(tr);
     });
 
