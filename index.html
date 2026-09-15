@@ -370,6 +370,15 @@ async function loadData() {
   const squeezeMode = document.getElementById('squeeze-filter').value;
   const atrpTf = document.getElementById('atrp-tf').value;
 
+  // =================================================================
+  // [EARLY ENTRY FILTER MODIFICATION - START]
+  // Set boolean ini ke false jika ingin menonaktifkan filter melandai
+  const USE_EARLY_ENTRY_FILTER = true; 
+
+  const MAX_EMA_DIST_PERCENT = 1.2; // Maksimal jarak harga ke EMA20 1H (%) - cegah ngejar harga
+  const MAX_STOCH_15M_LIMIT = 65.0; // Maksimal nilai Stoch K 15m - pastikan belum overbought
+  // [EARLY ENTRY FILTER MODIFICATION - END]
+  // =================================================================  
   // Filter Wajib: Membatasi HANYA dari Binance Futures & Berpasangan USDT
   const filters = [
     { left: "exchange", operation: "equal", right: "BINANCE" },
@@ -502,6 +511,28 @@ async function loadData() {
       if (!checkRsiCondition(k1h, d1h, state.rsi['1h'])) return;
       if (!checkRsiCondition(k4h, d4h, state.rsi['4h'])) return;
 
+      // ... perhitungan indikator sebelumnya (price, e20_1h, k15, dll.) ...
+
+      // =================================================================
+      // [EARLY ENTRY FILTER MODIFICATION - START]
+      if (USE_EARLY_ENTRY_FILTER) {
+        // 1. Hitung persentase jarak harga saat ini ke EMA20 1H
+        const emaDistance = Math.abs((price - e20_1h) / e20_1h) * 100;
+
+        // Batal jika harga sudah melompat terlalu jauh dari EMA20 1H
+        if (emaDistance > MAX_EMA_DIST_PERCENT) {
+          return; // Abaikan koin ini (sudah terlalu naik)
+        }
+
+        // 2. Batal jika Stochastic 15m sudah terlalu tinggi / jenuh beli
+        if (k15 > MAX_STOCH_15M_LIMIT) {
+          return; // Abaikan koin ini (sudah overbought)
+        }
+      }
+      // [EARLY ENTRY FILTER MODIFICATION - END]
+      // =================================================================
+
+      // ... kriteria filter lanjutan / penambahan ke tabel ...      
       matchedRows++;
       if (atrp15m > topAtrp15) topAtrp15 = atrp15m;
       if (atrp1h > topAtrp1h) topAtrp1h = atrp1h;
