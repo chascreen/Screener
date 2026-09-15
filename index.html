@@ -226,11 +226,15 @@
             <th class="p-3">EMA 8 / 20 (15m • 1h • 4h)</th>
             <th class="p-3">SRSI (15m • 1h • 4h)</th>
             <th class="p-3">Squeeze Ratio (1h)</th>
+            <!-- KOLOM BARU DIBAWAH INI -->
+            <th style="color: #64748b;">EMA20 (1H)</th>
+            <th style="color: #ef4444;">SL (1.5x ATR)</th>
+            <th style="color: #22c55e;">TP (2.0x ATR)</th>            
           </tr>
         </thead>
         <tbody id="result-table">
           <tr>
-            <td colspan="10" class="p-4 text-center text-gray-500">Klik "Scan Now" untuk memuat data...</td>
+            <td colspan="13" class="p-4 text-center text-gray-500">Klik "Scan Now" untuk memuat data...</td>
           </tr>
         </tbody>
       </table>
@@ -345,6 +349,11 @@
     return true;
   }
 
+  // Format angka desimal agar sesuai dengan kepresisian harga koin (misal koin micin vs koin mahal)
+  function formatCryptoPrice(val) {
+    if (val === 0) return "-";
+    return val < 1 ? val.toFixed(6) : val.toFixed(4);
+  }  
   // Format Angka Presisi Kripto (Mendukung Memecoin)
   function formatPrice(val) {
     if (!val || isNaN(val) || val === 0) return '$0.00';
@@ -461,6 +470,11 @@ async function loadData() {
       const kltnUpper = parseFloat(d[20]) || 0;
       const kltnLower = parseFloat(d[21]) || 0;
 
+      // 1. Perhitungan Stop Loss (Price - 1.5 * ATR 1H)
+      const slPrice = price > 0 ? (price - (1.5 * atr1h)) : 0;
+
+      // 2. Perhitungan Target Price / TP (Price + 2.0 * ATR 1H)
+      const tpPrice = price > 0 ? (price + (2.0 * atr1h)) : 0;      
       const atrp15m = (atr15m > 0 && price > 0) ? (atr15m / price) * 100 : 0;
       const atrp1h = (atr1h > 0 && price > 0) ? (atr1h / price) * 100 : 0;
 
@@ -474,7 +488,7 @@ async function loadData() {
         squeezeRatio = 0;
       };
       const isSqueeze = squeezeRatio < 1.0;
-
+      
       // Client ATRP Check
       const currentAtrp = atrpTf === '15m' ? atrp15m : atrp1h;
       if (state.atrpVal > 0 && currentAtrp < state.atrpVal) return;
