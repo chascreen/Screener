@@ -227,8 +227,8 @@
             <th class="p-3">SRSI (15m • 1h • 4h)</th>
             <th class="p-3">Squeeze Ratio (1h)</th>
             <!-- KOLOM BARU DIBAWAH INI -->
+            <th style="color: #ef4444;">SL (1.5x ATR)</th>            
             <th style="color: #64748b;">EMA20 (1H)</th>
-            <th style="color: #ef4444;">SL (1.5x ATR)</th>
             <th style="color: #22c55e;">TP (2.0x ATR)</th>            
           </tr>
         </thead>
@@ -543,10 +543,10 @@ async function loadData() {
             ${isSqueeze ? 'SQUEEZE' : 'No Squeeze'} (${squeezeRatio.toFixed(2)})
           </span>
         </td>
-        <!-- === TAMBAHKAN 3 KOLOM BARU DI SINI === -->
-        <td class="text-red-400 font-semibold">$${formatPrice(slPrice)}</td>
-        <td class="text-blue-400">$${formatPrice(e20_1h)}</td>
-        <td class="text-green-400 font-semibold">$${formatPrice(tpPrice)}</td>;
+        <td class="p-3 text-slate-400 font-semibold">${formatPrice(e20_1h)}</td>
+        <td class="p-3 text-red-400 font-semibold">${formatPrice(slPrice)}</td>
+        <td class="p-3 text-green-400 font-semibold">${formatPrice(tpPrice)}</td>
+      `;        
       tbody.appendChild(tr);
     });
 
