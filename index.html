@@ -229,12 +229,13 @@
             <!-- KOLOM BARU DIBAWAH INI -->
             <th style="color: #ef4444;">SL (1.5x ATR)</th>            
             <th style="color: #64748b;">EMA20 (1H)</th>
-            <th style="color: #22c55e;">TP (2.0x ATR)</th>            
+            <th style="color: #22c55e;">TP (2.0x ATR)</th>       
+            <th>VWAP Status</th> <!-- <--- Tambahkan header baru ini -->            
           </tr>
         </thead>
         <tbody id="result-table">
           <tr>
-            <td colspan="13" class="p-4 text-center text-gray-500">Klik "Scan Now" untuk memuat data...</td>
+            <td colspan="14" class="p-4 text-center text-gray-500">Klik "Scan Now" untuk memuat data...</td>
           </tr>
         </tbody>
       </table>
@@ -365,7 +366,7 @@
 
 async function loadData() {
   const tbody = document.getElementById('result-table');
-  tbody.innerHTML = '<tr><td colspan="13" class="p-4 text-center text-yellow-500">Memuat data Binance USDT Perpetual...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="14" class="p-4 text-center text-yellow-500">Memuat data Binance USDT Perpetual...</td></tr>';
 
   const squeezeMode = document.getElementById('squeeze-filter').value;
   const atrpTf = document.getElementById('atrp-tf').value;
@@ -412,7 +413,7 @@ async function loadData() {
       "Stoch.RSI.K|60", "Stoch.RSI.D|60",   // d[14], d[15]
       "Stoch.RSI.K|240", "Stoch.RSI.D|240", // d[16], d[17]
       "BB.upper|60", "BB.lower|60",         // d[18], d[19]
-      "KCB.upper|60", "KCB.lower|60", "EMA20|60"      // d[20], d[21] , d[22]
+      "KCB.upper|60", "KCB.lower|60", "EMA20|60","VWAP"      // d[20], d[21] , d[22], d[23]
     ],
     sort: { sortBy: "volume", sortOrder: "desc" },
     range: [0, 50]
@@ -473,6 +474,7 @@ async function loadData() {
       const d1h = parseFloat(d[15]) || 0;
       const k4h = parseFloat(d[16]) || 0;
       const d4h = parseFloat(d[17]) || 0;
+      const vwap = parseFloat(d[23]) || 0;
 
       const bbUpper = parseFloat(d[18]) || 0;
       const bbLower = parseFloat(d[19]) || 0;
@@ -497,7 +499,12 @@ async function loadData() {
         squeezeRatio = 0;
       };
       const isSqueeze = squeezeRatio < 1.0;
-      
+
+      const isAboveVwap = price > vwap;
+      const vwapStatusHtml = isAboveVwap      
+
+      ? `<span class="badge-green">Above VWAP</span>` 
+      : `<span class="badge-red">Below VWAP</span>`;      
       // Client ATRP Check
       const currentAtrp = atrpTf === '15m' ? atrp15m : atrp1h;
       if (state.atrpVal > 0 && currentAtrp < state.atrpVal) return;
@@ -577,18 +584,19 @@ async function loadData() {
         <td class="p-3 text-slate-400 font-semibold">${formatPrice(e20_1h)}</td>
         <td class="p-3 text-red-400 font-semibold">${formatPrice(slPrice)}</td>
         <td class="p-3 text-green-400 font-semibold">${formatPrice(tpPrice)}</td>
+        <td class="vwap-col">${vwapStatusHtml}</td>        
       `;        
       tbody.appendChild(tr);
     });
 
     if (matchedRows === 0) {
-      tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-gray-400">Tidak ada koin yang memenuhi kriteria kombinasi ini.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="14" class="p-4 text-center text-gray-400">Tidak ada koin yang memenuhi kriteria kombinasi ini.</td></tr>';
     }
 
     updateStats(matchedRows, squeezeCount, ema15Bull, ema15Bear, topAtrp15, topAtrp1h);
 
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-red-500">Gagal mengambil data dari server.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="14" class="p-4 text-center text-red-500">Gagal mengambil data dari server.</td></tr>';
   }
 }
 
